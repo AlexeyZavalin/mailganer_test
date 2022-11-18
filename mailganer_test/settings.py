@@ -9,8 +9,12 @@ https://docs.djangoproject.com/en/1.11/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.11/ref/settings/
 """
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import, unicode_literals
 
 import os
+
+from celery.schedules import crontab
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -37,7 +41,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'main'
+    'django.contrib.sites',
+    'main',
+    'django_celery_results'
 ]
 
 MIDDLEWARE = [
@@ -55,7 +61,7 @@ ROOT_URLCONF = 'mailganer_test.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ['templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -119,3 +125,48 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
+
+SITE_ID = 1
+
+# CELERY start
+
+CELERY_TIMEZONE = 'UTC'
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60
+
+CELERY_RESULT_BACKEND = 'django-db'
+
+CELERY_CACHE_BACKEND = 'django-cache'
+
+CELERY_BROKER_URL = 'redis://localhost:6379'
+
+CELERY_BEAT_SCHEDULE = {
+    'send-daily-mail': { 
+        'task': 'main.tasks.daily_mail', 
+        'schedule': crontab(hour=10, minute=0),
+    },          
+}
+
+# CELERY end
+
+# EMAIL SETTINGS start
+
+EMAIL_FROM = ''
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+EMAIL_HOST = ''
+EMAIL_PORT = ''
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
+EMAIL_USE_SSL = True
+
+TRACK_IMAGE = [
+    'image/gif',
+    "\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00"
+    "\x00\xff\xff\xff\x00\x00\x00\x21\xf9\x04\x01\x00"
+    "\x00\x00\x00\x2c\x00\x00\x00\x00\x01\x00\x01\x00"
+    "\x00\x02\x02\x44\x01\x00\x3b"
+]
+
+# EMAIL SETTINGS end
